@@ -16,3 +16,4 @@ Another thing to note is the use of hash tables to draw the snake. Its keys are 
 
 ## Requirements
 - [`Pygame`](https://www.pygame.org/news)
+- [`Python 3.10`](https://www.python.org/downloads/release/python-3100/)
