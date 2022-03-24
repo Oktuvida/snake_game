@@ -54,6 +54,9 @@ class MainMenu(AbstractMenu):
         super().handle_event(event)
         if event.type == pygame.KEYDOWN:
             match event.key:
+                case pygame.K_ESCAPE:
+                    if MainMenu.START_BUTTON_TEXT != "Start":
+                        State.GAME = GameState.PLAYING
                 case pygame.K_UP:
                     State.MENU = MenuState.get_prev(State.MENU)
                 case pygame.K_DOWN:
