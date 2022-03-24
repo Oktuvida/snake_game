@@ -22,8 +22,6 @@ class AbstractMenu:
             Functions.exit()
 
     def update(self) -> None:
-        if self.title_position != Vector(Display.WIDTH / 2, Display.HEIGHT / 4):
-            self.__init__()
         self.background.update()
         self.mouse.update()
 
@@ -201,6 +199,8 @@ class ResolutionMenu(AbstractMenu):
 
     def update(self) -> None:
         super().update()
+        if self.title_position != Vector(Display.WIDTH / 2, Display.HEIGHT / 4):
+            self.__init__()
         match State.RESOLUTION:
             case ResolutionState.R600X600:
                 self.r600x600_button.collide = not self.r800x800_button.is_colliding(
