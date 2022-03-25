@@ -39,8 +39,8 @@ class AbstractMenu:
         self.buttons[self.get_selected_button()].collide = True
         for key in self.buttons.keys():
             if key != self.get_selected_button():
-                self.buttons[self.get_selected_button()].collide = self.buttons[self.get_selected_button()] and not self.buttons[key].is_colliding(
-                    self.mouse)
+                self.buttons[self.get_selected_button()].collide = self.buttons[self.get_selected_button()].collide \
+                    and not self.buttons[key].is_colliding(self.mouse)
             self.buttons[key].update()
 
     def run(self) -> None:
@@ -73,6 +73,11 @@ class MainMenu(AbstractMenu):
             )
         }
 
+    def update(self) -> None:
+        self.title.text = MainMenu.TITLE_TEXT
+        self.buttons[MenuState.START].set_text(MainMenu.START_BUTTON_TEXT)
+        return super().update()
+
     def get_selected_button(self) -> int:
         return State.MENU
 
@@ -99,6 +104,7 @@ class MainMenu(AbstractMenu):
     def is_active(self) -> bool:
         return State.GAME == GameState.MENU
 
+
 class SettingsMenu(AbstractMenu):
     def __init__(self) -> None:
         super().__init__()
@@ -106,10 +112,10 @@ class SettingsMenu(AbstractMenu):
         self.title = TextBox(
             'Settings', self.title_font, Colors.PRIMARY_BLACK, self.title_position)
         self.buttons = {
-            SettingsState.RESOLUTION : Button(
-                'Resolution',self.title_position + position_difference
+            SettingsState.RESOLUTION: Button(
+                'Resolution', self.title_position + position_difference
             ),
-            SettingsState.BACK : Button(
+            SettingsState.BACK: Button(
                 'Back', self.title_position + (position_difference * 2)
             )
         }
@@ -137,6 +143,7 @@ class SettingsMenu(AbstractMenu):
     def is_active(self) -> bool:
         return State.GAME == GameState.SETTINGS
 
+
 class ResolutionMenu(AbstractMenu):
     def __init__(self) -> None:
         super().__init__()
@@ -144,16 +151,16 @@ class ResolutionMenu(AbstractMenu):
         self.title = TextBox('Resolution', self.title_font,
                              Colors.PRIMARY_BLACK, self.title_position)
         self.buttons = {
-            ResolutionState.R600X600 : Button(
+            ResolutionState.R600X600: Button(
                 '600x600', self.title_position + position_difference
             ),
-            ResolutionState.R800X800 : Button(
+            ResolutionState.R800X800: Button(
                 '800x800', self.title_position + (position_difference * 2)
             ),
-            ResolutionState.R1000X1000 : Button(
+            ResolutionState.R1000X1000: Button(
                 '1000x1000', self.title_position + (position_difference * 3)
             ),
-            ResolutionState.BACK : Button(
+            ResolutionState.BACK: Button(
                 'Back', self.title_position + (position_difference * 4)
             )
         }
@@ -189,6 +196,7 @@ class ResolutionMenu(AbstractMenu):
     def is_active(self) -> bool:
         return State.GAME == GameState.RESOLUTION
 
+
 class GameOverMenu(AbstractMenu):
     def __init__(self) -> None:
         super().__init__()
@@ -196,10 +204,10 @@ class GameOverMenu(AbstractMenu):
         self.title = TextBox('Game Over', self.title_font,
                              Colors.PRIMARY_BLACK, self.title_position)
         self.buttons = {
-            GameOverState.RESTART : Button(
+            GameOverState.RESTART: Button(
                 'Restart', self.title_position + position_difference
             ),
-            GameOverState.EXIT : Button(
+            GameOverState.EXIT: Button(
                 'Exit', self.title_position + (position_difference * 2)
             )
         }
