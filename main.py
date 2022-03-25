@@ -12,7 +12,6 @@ class SnakeGame:
         Display.set_surface()
         Display.set_clock()
 
-        self.actual_resolution = Display.SURFACE.get_size()
         self.game = Game()
         self.main_menu = MainMenu()
         self.settings = SettingsMenu()
@@ -21,17 +20,8 @@ class SnakeGame:
 
         pygame.display.set_caption(Display.CAPTION)
 
-    def check_resolution(self) -> None:
-        if Display.SURFACE.get_size() != self.actual_resolution:
-            self.actual_resolution = Display.SURFACE.get_size()
-            self.main_menu = MainMenu()
-            self.settings = SettingsMenu()
-            self.resolution = ResolutionMenu()
-            self.game_over = GameOverMenu()
-
     def run(self) -> None:
         while True:
-            self.check_resolution()
             self.game.run()
             self.main_menu.run()
             self.settings.run()
