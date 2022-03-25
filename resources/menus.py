@@ -10,20 +10,46 @@ class AbstractMenu:
             FontFamily.DEFAULT, Display.FONT_SIZE * 2)
         self.title_position = Vector(Display.WIDTH / 2, Display.HEIGHT / 4)
         self.title: TextBox = None
+        self.buttons: dict[int, Button] = {}
         self.background = Backgrounds.Grass()
         self.mouse = Mouse()
 
     def draw(self) -> None:
         self.background.draw(Display.SURFACE)
         self.title.draw(Display.SURFACE)
+        for value in self.buttons.values():
+            value.draw(Display.SURFACE)
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             Functions.exit()
 
+    def is_active(self) -> bool:
+        return False
+
+    def get_selected_button(self) -> int:
+        return -1
+
     def update(self) -> None:
+        if self.title_position != Vector(Display.WIDTH / 2, Display.HEIGHT / 4):
+            self.__init__()
         self.background.update()
         self.mouse.update()
+        self.title.update()
+        self.buttons[self.get_selected_button()].collide = True
+        for key in self.buttons.keys():
+            if key != self.get_selected_button():
+                self.buttons[self.get_selected_button()].collide = self.buttons[self.get_selected_button()] and not self.buttons[key].is_colliding(
+                    self.mouse)
+            self.buttons[key].update()
+
+    def run(self) -> None:
+        while self.is_active():
+            for event in pygame.event.get():
+                self.handle_event(event)
+            self.update()
+            self.draw()
+            Functions.update_display()
 
 
 class MainMenu(AbstractMenu):
@@ -35,18 +61,20 @@ class MainMenu(AbstractMenu):
         position_difference = Vector(0, Display.HEIGHT / 8)
         self.title = TextBox(
             MainMenu.TITLE_TEXT, self.title_font, Colors.PRIMARY_BLACK, self.title_position)
-        self.start_button = Button(
-            MainMenu.START_BUTTON_TEXT, self.title.position + position_difference)
-        self.settings_button = Button(
-            'Settings', self.start_button.position + position_difference)
-        self.exit_button = Button(
-            'Exit', self.settings_button.position + position_difference)
+        self.buttons = {
+            MenuState.START: Button(
+                MainMenu.START_BUTTON_TEXT, self.title.position + position_difference
+            ),
+            MenuState.SETTINGS: Button(
+                'Settings', self.title.position + (position_difference * 2)
+            ),
+            MenuState.EXIT: Button(
+                'Exit', self.title.position + (position_difference * 3)
+            )
+        }
 
-    def draw(self) -> None:
-        super().draw()
-        self.start_button.draw(Display.SURFACE)
-        self.settings_button.draw(Display.SURFACE)
-        self.exit_button.draw(Display.SURFACE)
+    def get_selected_button(self) -> int:
+        return State.MENU
 
     def handle_event(self, event: pygame.event.Event) -> None:
         super().handle_event(event)
@@ -68,33 +96,8 @@ class MainMenu(AbstractMenu):
                         case MenuState.EXIT:
                             Functions.exit()
 
-    def update(self) -> None:
-        super().update()
-        self.title.text = MainMenu.TITLE_TEXT
-        self.start_button.text_box.text = MainMenu.START_BUTTON_TEXT
-        match State.MENU:
-            case MenuState.START:
-                self.start_button.collide = not self.settings_button.is_colliding(
-                    self.mouse) and not self.exit_button.is_colliding(self.mouse)
-            case MenuState.SETTINGS:
-                self.settings_button.collide = not self.start_button.is_colliding(
-                    self.mouse) and not self.exit_button.is_colliding(self.mouse)
-            case MenuState.EXIT:
-                self.exit_button.collide = not self.start_button.is_colliding(
-                    self.mouse) and not self.settings_button.is_colliding(self.mouse)
-        self.title.update()
-        self.start_button.update()
-        self.settings_button.update()
-        self.exit_button.update()
-
-    def run(self) -> None:
-        while State.GAME == GameState.MENU:
-            for event in pygame.event.get():
-                self.handle_event(event)
-            self.draw()
-            self.update()
-            Functions.update_display()
-
+    def is_active(self) -> bool:
+        return State.GAME == GameState.MENU
 
 class SettingsMenu(AbstractMenu):
     def __init__(self) -> None:
@@ -102,15 +105,17 @@ class SettingsMenu(AbstractMenu):
         position_difference = Vector(0, Display.HEIGHT / 8)
         self.title = TextBox(
             'Settings', self.title_font, Colors.PRIMARY_BLACK, self.title_position)
-        self.resolution_button = Button(
-            'Resolution', self.title.position + position_difference)
-        self.back_button = Button(
-            'Back', self.resolution_button.position + position_difference)
+        self.buttons = {
+            SettingsState.RESOLUTION : Button(
+                'Resolution',self.title_position + position_difference
+            ),
+            SettingsState.BACK : Button(
+                'Back', self.title_position + (position_difference * 2)
+            )
+        }
 
-    def draw(self) -> None:
-        super().draw()
-        self.resolution_button.draw(Display.SURFACE)
-        self.back_button.draw(Display.SURFACE)
+    def get_selected_button(self) -> int:
+        return State.SETTINGS
 
     def handle_event(self, event: pygame.event.Event) -> None:
         super().handle_event(event)
@@ -129,26 +134,8 @@ class SettingsMenu(AbstractMenu):
                         case SettingsState.BACK:
                             State.GAME = GameState.MENU
 
-    def update(self) -> None:
-        super().update()
-        match State.SETTINGS:
-            case SettingsState.RESOLUTION:
-                self.resolution_button.collide = not self.back_button.is_colliding(
-                    self.mouse)
-            case SettingsState.BACK:
-                self.back_button.collide = not self.resolution_button.is_colliding(
-                    self.mouse)
-        self.resolution_button.update()
-        self.back_button.update()
-
-    def run(self) -> None:
-        while State.GAME == GameState.SETTINGS:
-            for event in pygame.event.get():
-                self.handle_event(event)
-            self.draw()
-            self.update()
-            Functions.update_display()
-
+    def is_active(self) -> bool:
+        return State.GAME == GameState.SETTINGS
 
 class ResolutionMenu(AbstractMenu):
     def __init__(self) -> None:
@@ -156,21 +143,23 @@ class ResolutionMenu(AbstractMenu):
         position_difference = Vector(0, Display.HEIGHT / 8)
         self.title = TextBox('Resolution', self.title_font,
                              Colors.PRIMARY_BLACK, self.title_position)
-        self.r600x600_button = Button(
-            '600x600', self.title_position + position_difference)
-        self.r800x800_button = Button(
-            '800x800', self.r600x600_button.position + position_difference)
-        self.r1000x1000_button = Button(
-            '1000x1000', self.r800x800_button.position + position_difference)
-        self.back_button = Button(
-            'Back', self.r1000x1000_button.position + position_difference)
+        self.buttons = {
+            ResolutionState.R600X600 : Button(
+                '600x600', self.title_position + position_difference
+            ),
+            ResolutionState.R800X800 : Button(
+                '800x800', self.title_position + (position_difference * 2)
+            ),
+            ResolutionState.R1000X1000 : Button(
+                '1000x1000', self.title_position + (position_difference * 3)
+            ),
+            ResolutionState.BACK : Button(
+                'Back', self.title_position + (position_difference * 4)
+            )
+        }
 
-    def draw(self) -> None:
-        super().draw()
-        self.r600x600_button.draw(Display.SURFACE)
-        self.r800x800_button.draw(Display.SURFACE)
-        self.r1000x1000_button.draw(Display.SURFACE)
-        self.back_button.draw(Display.SURFACE)
+    def get_selected_button(self) -> int:
+        return State.RESOLUTION
 
     def handle_event(self, event: pygame.event.Event) -> None:
         super().handle_event(event)
@@ -197,36 +186,8 @@ class ResolutionMenu(AbstractMenu):
                     Display.update()
                     Display.set_surface()
 
-    def update(self) -> None:
-        super().update()
-        if self.title_position != Vector(Display.WIDTH / 2, Display.HEIGHT / 4):
-            self.__init__()
-        match State.RESOLUTION:
-            case ResolutionState.R600X600:
-                self.r600x600_button.collide = not self.r800x800_button.is_colliding(
-                    self.mouse) and not self.r1000x1000_button.is_colliding(self.mouse) and not self.back_button.is_colliding(self.mouse)
-            case ResolutionState.R800X800:
-                self.r800x800_button.collide = not self.r600x600_button.is_colliding(
-                    self.mouse) and not self.r1000x1000_button.is_colliding(self.mouse) and not self.back_button.is_colliding(self.mouse)
-            case ResolutionState.R1000X1000:
-                self.r1000x1000_button.collide = not self.r600x600_button.is_colliding(
-                    self.mouse) and not self.r800x800_button.is_colliding(self.mouse) and not self.back_button.is_colliding(self.mouse)
-            case ResolutionState.BACK:
-                self.back_button.collide = not self.r600x600_button.is_colliding(self.mouse) and not self.r800x800_button.is_colliding(
-                    self.mouse) and not self.r1000x1000_button.is_colliding(self.mouse)
-        self.r600x600_button.update()
-        self.r800x800_button.update()
-        self.r1000x1000_button.update()
-        self.back_button.update()
-
-    def run(self) -> None:
-        while State.GAME == GameState.RESOLUTION:
-            for event in pygame.event.get():
-                self.handle_event(event)
-            self.draw()
-            self.update()
-            Functions.update_display()
-
+    def is_active(self) -> bool:
+        return State.GAME == GameState.RESOLUTION
 
 class GameOverMenu(AbstractMenu):
     def __init__(self) -> None:
@@ -234,15 +195,17 @@ class GameOverMenu(AbstractMenu):
         position_difference = Vector(0, Display.WIDTH / 8)
         self.title = TextBox('Game Over', self.title_font,
                              Colors.PRIMARY_BLACK, self.title_position)
-        self.restart_button = Button(
-            'Restart', self.title.position + position_difference)
-        self.exit_button = Button(
-            'Exit', self.restart_button.position + position_difference)
+        self.buttons = {
+            GameOverState.RESTART : Button(
+                'Restart', self.title_position + position_difference
+            ),
+            GameOverState.EXIT : Button(
+                'Exit', self.title_position + (position_difference * 2)
+            )
+        }
 
-    def draw(self) -> None:
-        super().draw()
-        self.restart_button.draw(Display.SURFACE)
-        self.exit_button.draw(Display.SURFACE)
+    def get_selected_button(self) -> int:
+        return State.GAME_OVER
 
     def handle_event(self, event: pygame.event.Event) -> None:
         super().handle_event(event)
@@ -259,22 +222,5 @@ class GameOverMenu(AbstractMenu):
                         case GameOverState.EXIT:
                             Functions.exit()
 
-    def update(self) -> None:
-        super().update()
-        match State.GAME_OVER:
-            case GameOverState.RESTART:
-                self.restart_button.collide = not self.exit_button.is_colliding(
-                    self.mouse)
-            case GameOverState.EXIT:
-                self.exit_button.collide = not self.restart_button.is_colliding(
-                    self.mouse)
-        self.restart_button.update()
-        self.exit_button.update()
-
-    def run(self) -> None:
-        while State.GAME == GameState.GAME_OVER:
-            for event in pygame.event.get():
-                self.handle_event(event)
-            self.draw()
-            self.update()
-            Functions.update_display()
+    def is_active(self) -> bool:
+        return State.GAME == GameState.GAME_OVER
