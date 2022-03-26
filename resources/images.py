@@ -19,9 +19,9 @@ class Images:
             Images.Fruits.DEFAULT = None
 
     class Snake:
-        HEAD: tuple[tuple[Vector, Vector], pygame.Surface] = None
-        BODY: tuple[tuple[Vector, Vector], pygame.Surface] = None
-        TAIL: tuple[tuple[Vector, Vector], pygame.Surface] = None
+        HEAD: dict[tuple[Vector, Vector], pygame.Surface] = None
+        BODY: dict[tuple[Vector, Vector], pygame.Surface] = None
+        TAIL: dict[tuple[Vector, Vector], pygame.Surface] = None
 
         @staticmethod
         def load() -> None:

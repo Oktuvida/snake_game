@@ -2,7 +2,7 @@ import pygame
 from collections import deque
 from enum import Enum
 from random import randint
-from resources.commons import Colors, Directions, TextBox, Vector
+from resources.commons import Colors, Directions, Vector
 from resources.images import Images
 from settings import Display, FontFamily, Path
 
@@ -10,21 +10,19 @@ from settings import Display, FontFamily, Path
 class Fruit:
     def __init__(self) -> None:
         self.position: Vector | pygame.Rect = None
-        self.randomize = False
 
     def draw(self, display: pygame.Surface) -> None:
-        if self.position:
-            if isinstance(self.position, pygame.Rect):
-                display.blit(Images.Fruits.DEFAULT, self.position)
-            else:
-                display.blit(Images.Fruits.DEFAULT,
-                             self.position * Display.CELL_SIZE)
+        if self.position is None:
+            self.randomize()
+        if isinstance(self.position, pygame.Rect):
+            display.blit(Images.Fruits.DEFAULT, self.position)
+        else:
+            display.blit(Images.Fruits.DEFAULT,
+                         self.position * Display.CELL_SIZE)
 
-    def update(self) -> None:
-        if self.randomize:
-            self.position = Vector(
-                randint(0, Display.CELL_NUMBER - 1), randint(0, Display.CELL_NUMBER - 1))
-            self.randomize = False
+    def randomize(self) -> None:
+        self.position = Vector(
+            randint(0, Display.CELL_NUMBER - 1), randint(0, Display.CELL_NUMBER - 1))
 
 
 class Snake:
@@ -40,15 +38,16 @@ class Snake:
             self.type = type
 
         def draw(self, display: pygame.Surface) -> None:
-            if self.type == self.Type.HEAD:
-                display.blit(Images.Snake.HEAD[tuple(
-                    self.direction)], self.position * Display.CELL_SIZE)
-            elif self.type == self.Type.BODY:
-                display.blit(Images.Snake.BODY[tuple(
-                    self.direction)], self.position * Display.CELL_SIZE)
-            elif self.type == self.type.TAIL:
-                display.blit(Images.Snake.TAIL[tuple(
-                    self.direction)], self.position * Display.CELL_SIZE)
+            match self.type:
+                case self.type.HEAD:
+                    display.blit(Images.Snake.HEAD[tuple(
+                        self.direction)], self.position * Display.CELL_SIZE)
+                case self.Type.BODY:
+                    display.blit(Images.Snake.BODY[tuple(
+                        self.direction)], self.position * Display.CELL_SIZE)
+                case self.type.TAIL:
+                    display.blit(Images.Snake.TAIL[tuple(
+                        self.direction)], self.position * Display.CELL_SIZE)
 
     def __init__(self) -> None:
         self.direction = Vector(0, 0)
